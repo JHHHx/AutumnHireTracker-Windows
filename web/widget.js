@@ -111,7 +111,14 @@ function pendingCard(event) {
           <h3>${escapeHtml(event.company)}</h3>
           <p>${escapeHtml(event.department)}${event.role ? ` / ${escapeHtml(event.role)}` : ""}</p>
         </div>
-        <span class="stage-badge ${stageClass(event.stage)}">${escapeHtml(event.stage)}</span>
+        <div class="pending-card-controls">
+          <span class="stage-badge ${stageClass(event.stage)}">${escapeHtml(event.stage)}</span>
+          <button
+            class="pending-delete-button"
+            type="button"
+            data-delete-event
+          >撤销记录</button>
+        </div>
       </div>
       <time class="pending-time" datetime="${escapeHtml(event.scheduled_at)}">${escapeHtml(formatDateTime(event.scheduled_at))}</time>
       ${
@@ -248,6 +255,40 @@ async function updateOutcome(button) {
   }
 }
 
+async function deletePendingEvent(button) {
+  const card = button.closest(".pending-card");
+  const eventId = card.dataset.eventId;
+  const event = widgetState.pending.find(
+    (item) => Number(item.id) === Number(eventId),
+  );
+  if (!event) return;
+  if (
+    !window.confirm(
+      `确认撤销这条记录吗？\n\n${event.company} / ${event.department}\n${event.stage} · ${formatDateTime(event.scheduled_at)}\n\n删除后无法恢复。`,
+    )
+  ) {
+    return;
+  }
+
+  card.querySelectorAll("button").forEach((item) => {
+    item.disabled = true;
+  });
+  try {
+    const response = await fetch(`/api/events/${eventId}`, {
+      method: "DELETE",
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "删除失败");
+    showToast("记录已撤销");
+    await loadData({ quiet: true });
+  } catch (error) {
+    showToast(error.message || "删除失败，请重试", true);
+    card.querySelectorAll("button").forEach((item) => {
+      item.disabled = false;
+    });
+  }
+}
+
 function initialize() {
   document.querySelector("#widget-date").textContent = new Intl.DateTimeFormat(
     "zh-CN",
@@ -265,6 +306,11 @@ function initialize() {
     .querySelector("#department")
     .addEventListener("change", updateSuggestions);
   document.querySelector("#pending-list").addEventListener("click", (event) => {
+    const deleteButton = event.target.closest("[data-delete-event]");
+    if (deleteButton) {
+      deletePendingEvent(deleteButton);
+      return;
+    }
     const button = event.target.closest("[data-outcome]");
     if (button) updateOutcome(button);
   });

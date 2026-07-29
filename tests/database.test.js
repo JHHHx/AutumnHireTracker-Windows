@@ -78,6 +78,51 @@ test("通过、未通过、待确认和通过率正确流转", async (t) => {
   assert.equal(dashboard.stats.pending, 1);
   assert.equal(dashboard.stats.pass_rate, 50);
   assert.equal(dashboard.pending[0].id, third.id);
+
+  database.updateEvent(second.id, { outcome: null });
+  const restored = database.dashboard();
+  assert.equal(restored.stats.pending, 2);
+  assert.equal(
+    restored.applications[0].events.find((event) => event.id === second.id)
+      .code_problem,
+    "LRU 缓存",
+  );
+});
+
+test("记录可修改，删除最后一条时自动清理公司主线", async (t) => {
+  const database = await temporaryDatabase(t);
+  const first = database.createEvent({
+    company: "小米",
+    department: "互联网业务部",
+    stage: "一面",
+    scheduled_at: "2026-08-10T10:00",
+  });
+  const second = database.createEvent({
+    company: "小米",
+    department: "互联网业务部",
+    stage: "二面",
+  });
+
+  database.updateEvent(second.id, {
+    stage: "三面",
+    scheduled_at: "2026-08-18T15:30",
+    notes: "系统设计",
+    code_problem: "二叉树层序遍历",
+  });
+  let dashboard = database.dashboard();
+  assert.equal(dashboard.applications[0].events[1].stage, "三面");
+  assert.equal(
+    dashboard.applications[0].events[1].scheduled_at,
+    "2026-08-18T15:30",
+  );
+
+  const firstDelete = database.deleteEvent(first.id);
+  assert.equal(firstDelete.application_deleted, false);
+  const lastDelete = database.deleteEvent(second.id);
+  assert.equal(lastDelete.application_deleted, true);
+  dashboard = database.dashboard();
+  assert.equal(dashboard.stats.applications, 0);
+  assert.equal(dashboard.stats.events, 0);
 });
 
 test("非法日期和非面试手撕代码会被拒绝", async (t) => {

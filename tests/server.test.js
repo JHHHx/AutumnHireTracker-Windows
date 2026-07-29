@@ -54,11 +54,29 @@ test("本地 API 可录入、更新并导出 CSV", async (t) => {
   assert.equal(dashboard.stats.pending, 0);
   assert.equal(dashboard.applications[0].events[0].outcome, "passed");
 
+  const restoreResponse = await fetch(
+    `${local.baseUrl}/api/events/${created.id}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ outcome: null }),
+    },
+  );
+  assert.equal(restoreResponse.status, 200);
+
   const csvResponse = await fetch(`${local.baseUrl}/api/export.csv`);
   const csv = await csvResponse.text();
   assert.equal(csvResponse.status, 200);
   assert.match(csv, /美团/u);
   assert.match(csv, /反转链表/u);
+
+  const deleteResponse = await fetch(
+    `${local.baseUrl}/api/events/${created.id}`,
+    { method: "DELETE" },
+  );
+  assert.equal(deleteResponse.status, 200);
+  const deleted = await deleteResponse.json();
+  assert.equal(deleted.application_deleted, true);
 });
 
 test("写接口拒绝非 JSON 和跨来源请求", async (t) => {

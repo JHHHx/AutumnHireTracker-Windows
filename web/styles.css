@@ -625,6 +625,7 @@ button {
 }
 
 .stage-card {
+  position: relative;
   flex: 0 0 132px;
   min-height: 102px;
   padding: 12px;
@@ -680,14 +681,94 @@ button {
   font-size: 12px;
 }
 
+.stage-actions {
+  position: relative;
+}
+
+.stage-actions summary {
+  display: grid;
+  width: 24px;
+  height: 22px;
+  place-items: center;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  list-style: none;
+  opacity: 0.72;
+  transition:
+    background 150ms ease,
+    opacity 150ms ease;
+}
+
+.stage-actions summary::-webkit-details-marker {
+  display: none;
+}
+
+.stage-actions summary:hover,
+.stage-actions[open] summary {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  opacity: 1;
+}
+
+.stage-action-menu {
+  position: absolute;
+  z-index: 4;
+  top: 28px;
+  right: 0;
+  display: grid;
+  width: 112px;
+  gap: 3px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  background: var(--surface-strong);
+  box-shadow: 0 12px 30px rgba(36, 53, 88, 0.16);
+}
+
+.stage-action-menu button {
+  min-height: 27px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 7px;
+  color: inherit;
+  background: transparent;
+  font-size: 10px;
+  font-weight: 650;
+  text-align: left;
+}
+
+.stage-action-menu button:hover {
+  background: var(--surface-muted);
+}
+
+.stage-action-menu button.danger {
+  color: var(--danger);
+}
+
+.stage-card:has(.stage-actions[open]) {
+  z-index: 3;
+  min-height: 146px;
+}
+
+.stage-card:has(.stage-actions[open]) > .outcome-text,
+.stage-card:has(.stage-actions[open]) > time,
+.stage-card:has(.stage-actions[open]) > p {
+  visibility: hidden;
+}
+
 .outcome-text {
+  display: block;
+  margin-top: 5px;
   font-size: 10px;
   font-weight: 700;
 }
 
 .stage-card time {
   display: block;
-  margin-top: 13px;
+  margin-top: 8px;
   color: currentColor;
   font-family: var(--mono);
   font-size: 10px;
@@ -711,6 +792,130 @@ button {
   padding-top: 7px;
   border-top: 1px solid currentColor;
   opacity: 0.8;
+}
+
+.event-dialog {
+  width: min(460px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  color: var(--ink);
+  background: var(--surface-strong);
+  box-shadow: 0 28px 80px rgba(30, 39, 58, 0.24);
+}
+
+.event-dialog::backdrop {
+  background: rgba(20, 27, 41, 0.36);
+  backdrop-filter: blur(3px);
+}
+
+.event-dialog form {
+  padding: 22px;
+}
+
+.event-dialog header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.event-dialog header p {
+  margin: 0 0 4px;
+  color: var(--ink-soft);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.event-dialog h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -0.035em;
+}
+
+.dialog-close {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 0;
+  border-radius: 9px;
+  color: var(--ink-soft);
+  background: var(--surface-muted);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.dialog-close:hover {
+  color: var(--ink);
+}
+
+.dialog-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.dialog-fields label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.dialog-fields label:nth-child(n + 3) {
+  grid-column: 1 / -1;
+}
+
+.dialog-fields label > span {
+  color: var(--ink-soft);
+  font-size: 10px;
+  font-weight: 680;
+}
+
+.dialog-fields input,
+.dialog-fields select,
+.dialog-fields textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  background: var(--surface);
+  font-size: 12px;
+}
+
+.dialog-fields input,
+.dialog-fields select {
+  height: 39px;
+  padding: 0 10px;
+}
+
+.dialog-fields textarea {
+  padding: 9px 10px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.dialog-fields input:focus,
+.dialog-fields select:focus,
+.dialog-fields textarea:focus {
+  border-color: var(--accent);
+  outline: 0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.dialog-error {
+  min-height: 14px;
+  margin: 9px 0 0;
+  color: var(--danger);
+  font-size: 11px;
+}
+
+.event-dialog footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .empty-state {
@@ -816,7 +1021,7 @@ button {
   color: var(--danger);
 }
 
-/* Opaque macOS menu-bar panel */
+/* Opaque quick-entry panel */
 
 .widget-document {
   color-scheme: light;
@@ -1180,6 +1385,31 @@ button {
   margin: 4px 0 0;
   color: var(--widget-muted);
   font-size: 10px;
+}
+
+.pending-card-controls {
+  display: grid;
+  flex: 0 0 auto;
+  justify-items: end;
+  gap: 5px;
+}
+
+.pending-delete-button {
+  padding: 0;
+  border: 0;
+  color: #a83d49;
+  background: transparent;
+  font-size: 9px;
+  font-weight: 680;
+}
+
+.pending-delete-button:hover {
+  text-decoration: underline;
+}
+
+.pending-delete-button:disabled {
+  cursor: wait;
+  opacity: 0.5;
 }
 
 .stage-badge {

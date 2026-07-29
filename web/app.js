@@ -143,11 +143,26 @@ function renderSchedule() {
 function stageCard(event) {
   const details = event.code_problem || event.notes;
   return `
-    <article class="stage-card ${stageClass(event.stage)} ${outcomeClass(event.outcome)}">
+    <article
+      class="stage-card ${stageClass(event.stage)} ${outcomeClass(event.outcome)}"
+      data-event-id="${event.id}"
+    >
       <header>
         <strong>${escapeHtml(event.stage)}</strong>
-        <span class="outcome-text">${outcomeLabel(event.outcome)}</span>
+        <details class="stage-actions">
+          <summary aria-label="管理这条记录">···</summary>
+          <div class="stage-action-menu">
+            <button type="button" data-event-action="edit">修改记录</button>
+            ${
+              event.outcome
+                ? '<button type="button" data-event-action="reset">恢复待确认</button>'
+                : ""
+            }
+            <button class="danger" type="button" data-event-action="delete">删除记录</button>
+          </div>
+        </details>
       </header>
+      <span class="outcome-text">${outcomeLabel(event.outcome)}</span>
       <time datetime="${escapeHtml(event.scheduled_at)}">${escapeHtml(formatDateTime(event.scheduled_at))}</time>
       ${
         details
@@ -156,6 +171,132 @@ function stageCard(event) {
       }
     </article>
   `;
+}
+
+function findEvent(eventId) {
+  for (const application of state.applications) {
+    const event = application.events.find(
+      (item) => Number(item.id) === Number(eventId),
+    );
+    if (event) return { application, event };
+  }
+  return null;
+}
+
+async function updateEvent(eventId, payload) {
+  const response = await fetch(`/api/events/${eventId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || "更新失败");
+  return result;
+}
+
+function updateEditorCodeVisibility() {
+  const stage = document.querySelector("#editor-stage").value;
+  const codeField = document.querySelector("#editor-code-field");
+  const isInterview = INTERVIEWS.has(stage);
+  codeField.hidden = !isInterview;
+  if (!isInterview) {
+    document.querySelector("#editor-code-problem").value = "";
+  }
+}
+
+function openEventEditor(eventId) {
+  const match = findEvent(eventId);
+  if (!match) {
+    showToast("没有找到这条记录", true);
+    return;
+  }
+  const { event } = match;
+  document.querySelector("#editor-event-id").value = event.id;
+  document.querySelector("#editor-stage").value = event.stage;
+  document.querySelector("#editor-scheduled-at").value =
+    event.scheduled_at || "";
+  document.querySelector("#editor-notes").value = event.notes || "";
+  document.querySelector("#editor-code-problem").value =
+    event.code_problem || "";
+  document.querySelector("#editor-error").textContent = "";
+  updateEditorCodeVisibility();
+  document.querySelector("#event-editor").showModal();
+}
+
+function closeEventEditor() {
+  document.querySelector("#event-editor").close();
+}
+
+async function saveEventEditor(event) {
+  event.preventDefault();
+  const error = document.querySelector("#editor-error");
+  const submit = event.currentTarget.querySelector('[type="submit"]');
+  error.textContent = "";
+  submit.disabled = true;
+  try {
+    await updateEvent(document.querySelector("#editor-event-id").value, {
+      stage: document.querySelector("#editor-stage").value,
+      scheduled_at: document.querySelector("#editor-scheduled-at").value,
+      notes: document.querySelector("#editor-notes").value,
+      code_problem: document.querySelector("#editor-code-problem").value,
+    });
+    closeEventEditor();
+    showToast("记录已更新");
+    await loadDashboard({ quiet: true });
+  } catch (requestError) {
+    error.textContent = requestError.message || "保存失败，请重试";
+  } finally {
+    submit.disabled = false;
+  }
+}
+
+async function resetEventOutcome(eventId) {
+  const match = findEvent(eventId);
+  if (!match) return;
+  const { application, event } = match;
+  if (
+    !window.confirm(
+      `将“${application.company} / ${application.department} / ${event.stage}”恢复为待确认吗？`,
+    )
+  ) {
+    return;
+  }
+  try {
+    await updateEvent(eventId, { outcome: null });
+    showToast("已恢复为待确认");
+    await loadDashboard({ quiet: true });
+  } catch (error) {
+    showToast(error.message || "恢复失败，请重试", true);
+  }
+}
+
+async function deleteEvent(eventId) {
+  const match = findEvent(eventId);
+  if (!match) return;
+  const { application, event } = match;
+  const time = formatDateTime(event.scheduled_at);
+  if (
+    !window.confirm(
+      `确认删除这条记录吗？\n\n${application.company} / ${application.department}\n${event.stage} · ${time}\n\n删除后无法恢复。`,
+    )
+  ) {
+    return;
+  }
+  try {
+    const response = await fetch(`/api/events/${eventId}`, {
+      method: "DELETE",
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "删除失败");
+    showToast(
+      result.application_deleted
+        ? "记录和空的公司主线已删除"
+        : "记录已删除",
+    );
+    await loadDashboard({ quiet: true });
+  } catch (error) {
+    showToast(error.message || "删除失败，请重试", true);
+  }
 }
 
 function applicationMatches(application) {
@@ -256,6 +397,35 @@ function initialize() {
   document.querySelector("#stage-filter").addEventListener("change", (event) => {
     state.stage = event.target.value;
     renderPipelines();
+  });
+
+  document.querySelector("#pipeline-list").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-event-action]");
+    if (!button) return;
+    const card = button.closest("[data-event-id]");
+    const eventId = card?.dataset.eventId;
+    if (!eventId) return;
+    button.closest("details")?.removeAttribute("open");
+    if (button.dataset.eventAction === "edit") {
+      openEventEditor(eventId);
+    } else if (button.dataset.eventAction === "reset") {
+      resetEventOutcome(eventId);
+    } else if (button.dataset.eventAction === "delete") {
+      deleteEvent(eventId);
+    }
+  });
+  document
+    .querySelector("#event-editor-form")
+    .addEventListener("submit", saveEventEditor);
+  document.querySelector("#editor-stage").addEventListener(
+    "change",
+    updateEditorCodeVisibility,
+  );
+  document.querySelectorAll("[data-close-editor]").forEach((button) => {
+    button.addEventListener("click", closeEventEditor);
+  });
+  document.querySelector("#event-editor").addEventListener("click", (event) => {
+    if (event.target === event.currentTarget) closeEventEditor();
   });
 
   window.addEventListener("focus", () => loadDashboard({ quiet: true }));

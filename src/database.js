@@ -242,23 +242,8 @@ class Database {
   }
 
   updateEvent(eventId, payload) {
-    const outcome = payload.outcome;
-    const codeProblem = String(payload.code_problem ?? "").trim();
-    const notes =
-      payload.notes === undefined ? undefined : String(payload.notes).trim();
-
-    if (!OUTCOMES.has(outcome)) {
-      throw new Error("结果必须是通过或未通过");
-    }
-    if (codeProblem.length > 4000) {
-      throw new Error("手撕代码记录请控制在 4000 字以内");
-    }
-    if (notes !== undefined && notes.length > 2000) {
-      throw new Error("备注请控制在 2000 字以内");
-    }
-
     const event = this.row(
-      "SELECT id, stage FROM events WHERE id = ?",
+      "SELECT * FROM events WHERE id = ?",
       [eventId],
     );
     if (!event) {
@@ -266,27 +251,89 @@ class Database {
       error.code = "NOT_FOUND";
       throw error;
     }
-    if (codeProblem && !INTERVIEW_STAGES.has(event.stage)) {
+
+    const outcome = Object.hasOwn(payload, "outcome")
+      ? payload.outcome
+      : event.outcome;
+    const stage = String(payload.stage ?? event.stage).trim();
+    const scheduledAt = String(
+      payload.scheduled_at ?? event.scheduled_at,
+    ).trim();
+    const notes = String(payload.notes ?? event.notes).trim();
+    const codeProblem = String(
+      payload.code_problem ?? event.code_problem,
+    ).trim();
+
+    if (outcome !== null && !OUTCOMES.has(outcome)) {
+      throw new Error("结果必须是通过、未通过或待确认");
+    }
+    if (!STAGES.includes(stage)) {
+      throw new Error("请选择有效的投递阶段");
+    }
+    validateScheduledAt(scheduledAt);
+    if (notes.length > 2000) {
+      throw new Error("备注请控制在 2000 字以内");
+    }
+    if (codeProblem.length > 4000) {
+      throw new Error("手撕代码记录请控制在 4000 字以内");
+    }
+    if (codeProblem && !INTERVIEW_STAGES.has(stage)) {
       throw new Error("只有面试阶段可以记录手撕代码");
     }
 
     return this.transaction(() => {
-      if (notes === undefined) {
-        this.db.run(
-          `UPDATE events
-           SET outcome = ?, code_problem = ?, updated_at = ?
-           WHERE id = ?`,
-          [outcome, codeProblem, nowIso(), eventId],
-        );
-      } else {
-        this.db.run(
-          `UPDATE events
-           SET outcome = ?, code_problem = ?, notes = ?, updated_at = ?
-           WHERE id = ?`,
-          [outcome, codeProblem, notes, nowIso(), eventId],
-        );
+      this.db.run(
+        `UPDATE events
+         SET stage = ?,
+             scheduled_at = ?,
+             notes = ?,
+             outcome = ?,
+             code_problem = ?,
+             updated_at = ?
+         WHERE id = ?`,
+        [
+          stage,
+          scheduledAt,
+          notes,
+          outcome,
+          codeProblem,
+          nowIso(),
+          eventId,
+        ],
+      );
+      return { id: eventId, outcome, stage };
+    });
+  }
+
+  deleteEvent(eventId) {
+    const event = this.row(
+      "SELECT id, application_id FROM events WHERE id = ?",
+      [eventId],
+    );
+    if (!event) {
+      const error = new Error("没有找到这条进度");
+      error.code = "NOT_FOUND";
+      throw error;
+    }
+
+    const applicationId = Number(event.application_id);
+    return this.transaction(() => {
+      this.db.run("DELETE FROM events WHERE id = ?", [eventId]);
+      const remaining = Number(
+        this.row(
+          "SELECT COUNT(*) AS count FROM events WHERE application_id = ?",
+          [applicationId],
+        ).count,
+      );
+      const applicationDeleted = remaining === 0;
+      if (applicationDeleted) {
+        this.db.run("DELETE FROM applications WHERE id = ?", [applicationId]);
       }
-      return { id: eventId, outcome };
+      return {
+        id: eventId,
+        application_id: applicationId,
+        application_deleted: applicationDeleted,
+      };
     });
   }
 

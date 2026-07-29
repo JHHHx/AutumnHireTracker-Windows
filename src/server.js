@@ -149,11 +149,14 @@ async function requestHandler(request, response, context) {
       json(response, 201, database.createEvent(await readJson(request)));
       return;
     }
-    const eventMatch =
-      request.method === "PATCH"
-        ? url.pathname.match(/^\/api\/events\/(\d+)$/u)
-        : null;
+    const eventMatch = ["PATCH", "DELETE"].includes(request.method)
+      ? url.pathname.match(/^\/api\/events\/(\d+)$/u)
+      : null;
     if (eventMatch) {
+      if (request.method === "DELETE") {
+        json(response, 200, database.deleteEvent(Number(eventMatch[1])));
+        return;
+      }
       json(
         response,
         200,

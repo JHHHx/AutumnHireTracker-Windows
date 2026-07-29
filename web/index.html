@@ -18,7 +18,7 @@
         <div class="brand-mark" aria-hidden="true">秋</div>
         <div>
           <strong>秋招进度台</strong>
-          <span>所有数据只保存在这台 Mac</span>
+          <span>所有数据只保存在这台电脑</span>
         </div>
       </div>
       <nav class="top-actions" aria-label="页面操作">
@@ -129,6 +129,59 @@
         </section>
       </section>
     </main>
+
+    <dialog id="event-editor" class="event-dialog" aria-labelledby="event-editor-title">
+      <form id="event-editor-form">
+        <header>
+          <div>
+            <p>调整这一次进度</p>
+            <h2 id="event-editor-title">修改记录</h2>
+          </div>
+          <button
+            class="dialog-close"
+            type="button"
+            data-close-editor
+            aria-label="关闭"
+          >×</button>
+        </header>
+        <input id="editor-event-id" type="hidden" />
+        <div class="dialog-fields">
+          <label>
+            <span>当前阶段</span>
+            <select id="editor-stage" required>
+              <option>已投递</option>
+              <option>测评</option>
+              <option>笔试</option>
+              <option>一面</option>
+              <option>二面</option>
+              <option>三面</option>
+              <option>四面</option>
+              <option>HR面</option>
+              <option>Offer</option>
+            </select>
+          </label>
+          <label>
+            <span>日期与时间</span>
+            <input id="editor-scheduled-at" type="datetime-local" />
+          </label>
+          <label>
+            <span>备注</span>
+            <textarea id="editor-notes" rows="3" placeholder="岗位编号、准备重点等"></textarea>
+          </label>
+          <label id="editor-code-field">
+            <span>手撕代码</span>
+            <textarea id="editor-code-problem" rows="3" placeholder="例如：LRU 缓存、反转链表"></textarea>
+          </label>
+        </div>
+        <p id="editor-error" class="dialog-error" role="alert"></p>
+        <footer>
+          <button class="button button-quiet" type="button" data-close-editor>
+            取消
+          </button>
+          <button class="button button-primary" type="submit">保存修改</button>
+        </footer>
+      </form>
+    </dialog>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <script src="/app.js" defer></script>
