@@ -2,6 +2,18 @@
 
 Windows 桌面版秋招投递与面试记录工具。界面、字段、阶段配色和网页看板与 macOS 版保持一致，但使用普通桌面窗口运行。
 
+## 普通用户直接使用
+
+前往 [Releases 下载最新版 Windows x64 便携版](https://github.com/JHHHx/AutumnHireTracker-Windows/releases/latest)，下载其中的：
+
+```text
+AutumnHireTracker-Windows-x64-v版本号.zip
+```
+
+解压完整文件夹后，双击其中的 `秋招进度台.exe` 即可运行。不需要安装 Node.js 或 Python，也不要只复制单独的 `.exe`。
+
+> GitHub 首页的“Code → Download ZIP”下载的是源码，不是可直接运行的软件。普通用户请从 Releases 下载便携版。
+
 ## 使用方式
 
 双击 `秋招进度台.exe` 后，会直接打开快速录入窗口：
@@ -31,10 +43,10 @@ Windows 桌面版秋招投递与面试记录工具。界面、字段、阶段配
 
 ## 从源码运行
 
-需要 Node.js 22 或更高版本：
+如果需要修改代码或参与开发，请先安装 Node.js 22：
 
 ```powershell
-npm install
+npm ci
 npm start
 ```
 
@@ -43,7 +55,7 @@ npm start
 请在 Windows 10/11 的 PowerShell 中执行，不要在 macOS 上交叉打包：
 
 ```powershell
-npm install
+npm ci
 npm test
 npm run package:win
 ```
@@ -67,3 +79,5 @@ tests/            数据与 API 自动化测试
 ```
 
 应用不依赖 Python，也不依赖系统 WebView。开发依赖不会被提交到 Git 仓库。
+
+每次推送到 `main`，GitHub Actions 都会在真正的 Windows 环境中测试并打包；推送 `v*` 标签时，还会自动创建带便携版压缩包的 GitHub Release。

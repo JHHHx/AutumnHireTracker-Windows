@@ -1,0 +1,80 @@
+name: Windows build and release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows-x64:
+    name: Test and package Windows x64
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Package portable app
+        run: npm run package:win
+
+      - name: Create portable archive and checksum
+        id: archive
+        shell: pwsh
+        run: |
+          $archiveName = "AutumnHireTracker-Windows-x64-${{ github.ref_name }}.zip"
+          Compress-Archive `
+            -Path "dist\秋招进度台-win32-x64" `
+            -DestinationPath $archiveName `
+            -Force
+          $checksumName = "$archiveName.sha256"
+          $hash = (Get-FileHash $archiveName -Algorithm SHA256).Hash.ToLower()
+          "$hash  $archiveName" | Set-Content -Path $checksumName -Encoding ascii
+          "archive_name=$archiveName" >> $env:GITHUB_OUTPUT
+          "checksum_name=$checksumName" >> $env:GITHUB_OUTPUT
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: AutumnHireTracker-Windows-x64-${{ github.ref_name }}
+          path: |
+            ${{ steps.archive.outputs.archive_name }}
+            ${{ steps.archive.outputs.checksum_name }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v3
+        with:
+          name: 秋招进度台 Windows ${{ github.ref_name }}
+          body: |
+            Windows 10/11 x64 便携版。
+
+            1. 下载 `AutumnHireTracker-Windows-x64-${{ github.ref_name }}.zip`
+            2. 解压完整文件夹
+            3. 双击文件夹中的 `秋招进度台.exe`
+
+            不需要安装 Node.js 或 Python。请保留解压后的整个文件夹，不要只复制单独的 `.exe`。
+          files: |
+            ${{ steps.archive.outputs.archive_name }}
+            ${{ steps.archive.outputs.checksum_name }}
+          fail_on_unmatched_files: true
+          make_latest: true
