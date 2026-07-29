@@ -1,0 +1,21 @@
+{
+  "name": "autumn-hire-tracker-windows",
+  "version": "1.0.0",
+  "description": "Windows 桌面版秋招投递与面试进度台",
+  "main": "src/main.js",
+  "private": true,
+  "license": "MIT",
+  "author": "kk",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test",
+    "package:win": "electron-packager . \"秋招进度台\" --platform=win32 --arch=x64 --out=dist --overwrite --prune=true --icon=assets/icon.ico --ignore=\"^/dist($|/)\" --ignore=\"^/tests($|/)\""
+  },
+  "dependencies": {
+    "sql.js": "1.14.1"
+  },
+  "devDependencies": {
+    "@electron/packager": "20.0.4",
+    "electron": "43.2.0"
+  }
+}

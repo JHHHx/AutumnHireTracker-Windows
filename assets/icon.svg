@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <rect width="256" height="256" rx="58" fill="#bd5b38"/>
+  <path d="M58 53h140v150H58z" fill="#fffaf5" opacity=".08"/>
+  <text
+    x="128"
+    y="168"
+    fill="#fffaf5"
+    font-family="Microsoft YaHei, PingFang SC, sans-serif"
+    font-size="118"
+    font-weight="700"
+    text-anchor="middle"
+  >秋</text>
+</svg>

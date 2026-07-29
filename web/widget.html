@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-CN" class="widget-document">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>秋招快速录入</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="widget-page">
+    <main class="widget-shell">
+      <section class="entry-panel glass-panel">
+        <header class="widget-header">
+          <div class="widget-title">
+            <span class="widget-mark" aria-hidden="true">秋</span>
+            <div>
+              <p id="widget-date">今天</p>
+              <h1>记录新进展</h1>
+            </div>
+          </div>
+          <a href="/" target="_blank" rel="noreferrer">
+            完整看板 <span aria-hidden="true">↗</span>
+          </a>
+        </header>
+
+        <form id="entry-form" class="entry-form">
+          <div class="form-row two-columns">
+            <label>
+              <span>公司</span>
+              <input
+                id="company"
+                name="company"
+                list="company-options"
+                autocomplete="organization"
+                required
+                placeholder="例如：字节跳动"
+              />
+              <datalist id="company-options"></datalist>
+            </label>
+            <label>
+              <span>部门</span>
+              <input
+                id="department"
+                name="department"
+                list="department-options"
+                required
+                placeholder="例如：抖音"
+              />
+              <datalist id="department-options"></datalist>
+            </label>
+          </div>
+
+          <div class="form-row two-columns">
+            <label>
+              <span>当前阶段</span>
+              <select id="stage" name="stage" required>
+                <option value="">请选择</option>
+                <option>已投递</option>
+                <option>测评</option>
+                <option>笔试</option>
+                <option>一面</option>
+                <option>二面</option>
+                <option>三面</option>
+                <option>四面</option>
+                <option>HR面</option>
+                <option>Offer</option>
+              </select>
+            </label>
+            <label>
+              <span>日期与时间</span>
+              <input id="scheduled-at" name="scheduled_at" type="datetime-local" />
+            </label>
+          </div>
+
+          <details class="optional-fields">
+            <summary>补充岗位、网站或备注</summary>
+            <div class="optional-content">
+              <div class="form-row two-columns">
+                <label>
+                  <span>岗位名称</span>
+                  <input id="role" name="role" placeholder="选填" />
+                </label>
+                <label>
+                  <span>投递网站</span>
+                  <input
+                    id="website"
+                    name="website"
+                    type="url"
+                    inputmode="url"
+                    placeholder="https://"
+                  />
+                </label>
+              </div>
+              <label>
+                <span>备注</span>
+                <textarea
+                  id="notes"
+                  name="notes"
+                  rows="2"
+                  placeholder="岗位编号、联系人、准备重点等"
+                ></textarea>
+              </label>
+            </div>
+          </details>
+
+          <p id="form-error" class="form-error" role="alert"></p>
+          <button class="submit-button" type="submit">
+            <span>提交进度</span>
+            <kbd>⌘ ↵</kbd>
+          </button>
+        </form>
+      </section>
+
+      <section class="pending-section glass-panel" aria-labelledby="pending-title">
+        <div class="pending-heading">
+          <div>
+            <h2 id="pending-title">待确认结果</h2>
+            <p>提交后会自动出现在这里</p>
+          </div>
+          <span id="pending-count">0</span>
+        </div>
+        <div id="pending-list" class="pending-list" aria-live="polite">
+          <div class="skeleton pending-skeleton"></div>
+          <div class="skeleton pending-skeleton"></div>
+        </div>
+      </section>
+    </main>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="/widget.js" defer></script>
+  </body>
+</html>

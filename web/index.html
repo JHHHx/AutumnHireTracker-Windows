@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="本地运行的秋招投递与面试进度看板"
+    />
+    <title>秋招进度台</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="dashboard-page">
+    <a class="skip-link" href="#main-content">跳到主要内容</a>
+
+    <header class="topbar">
+      <div class="brand-block">
+        <div class="brand-mark" aria-hidden="true">秋</div>
+        <div>
+          <strong>秋招进度台</strong>
+          <span>所有数据只保存在这台 Mac</span>
+        </div>
+      </div>
+      <nav class="top-actions" aria-label="页面操作">
+        <a class="button button-quiet" href="/api/export.csv">导出 CSV</a>
+        <a class="button button-primary" href="/widget">快速录入</a>
+      </nav>
+    </header>
+
+    <main id="main-content" class="dashboard-shell">
+      <section class="hero-panel" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="date-line" id="today-label">正在读取日期</p>
+          <h1 id="page-title">把每一次推进，<br />都留在同一条主线上。</h1>
+          <p>
+            同公司、同部门的测评、笔试和多轮面试会自动合并，完整保留每一次结果。
+          </p>
+        </div>
+        <div class="hero-summary" aria-live="polite">
+          <span>当前待处理</span>
+          <strong id="hero-pending">0</strong>
+          <small>项进度等待你确认结果</small>
+        </div>
+      </section>
+
+      <section class="metrics-grid" aria-label="秋招概览">
+        <article class="metric metric-dark">
+          <span>求职主线</span>
+          <strong id="metric-applications">0</strong>
+          <small>公司与部门组合</small>
+        </article>
+        <article class="metric">
+          <span>即将进行</span>
+          <strong id="metric-upcoming">0</strong>
+          <small>今天及之后的待办</small>
+        </article>
+        <article class="metric">
+          <span>阶段通过率</span>
+          <strong><span id="metric-pass-rate">0</span><i>%</i></strong>
+          <small>已确认结果的阶段</small>
+        </article>
+        <article class="metric metric-accent">
+          <span>Offer</span>
+          <strong id="metric-offers">0</strong>
+          <small>继续保持节奏</small>
+        </article>
+      </section>
+
+      <section class="workspace-grid">
+        <aside class="schedule-panel" aria-labelledby="schedule-title">
+          <div class="section-heading">
+            <div>
+              <h2 id="schedule-title">近期日程</h2>
+              <p>按日期排列待完成事项</p>
+            </div>
+            <span class="count-label" id="schedule-count">0 项</span>
+          </div>
+          <div id="schedule-list" class="schedule-list" aria-live="polite">
+            <div class="skeleton schedule-skeleton"></div>
+            <div class="skeleton schedule-skeleton"></div>
+          </div>
+        </aside>
+
+        <section class="pipeline-panel" aria-labelledby="pipeline-title">
+          <div class="pipeline-toolbar">
+            <div class="section-heading">
+              <div>
+                <h2 id="pipeline-title">公司进度</h2>
+                <p>每个部门一行，阶段按时间追加</p>
+              </div>
+            </div>
+            <div class="filters">
+              <label class="search-field">
+                <span>搜索公司或部门</span>
+                <input
+                  id="search-input"
+                  type="search"
+                  placeholder="例如：字节跳动"
+                  autocomplete="off"
+                />
+              </label>
+              <label class="select-field">
+                <span>筛选阶段</span>
+                <select id="stage-filter">
+                  <option value="">全部阶段</option>
+                  <option>已投递</option>
+                  <option>测评</option>
+                  <option>笔试</option>
+                  <option>面试</option>
+                  <option>Offer</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="legend" aria-label="阶段颜色说明">
+            <span><i class="legend-swatch stage-applied"></i>投递</span>
+            <span><i class="legend-swatch stage-assessment"></i>测评</span>
+            <span><i class="legend-swatch stage-written"></i>笔试</span>
+            <span><i class="legend-swatch stage-interview"></i>面试</span>
+            <span><i class="legend-swatch stage-offer"></i>Offer</span>
+          </div>
+
+          <div id="pipeline-list" class="pipeline-list" aria-live="polite">
+            <div class="skeleton pipeline-skeleton"></div>
+            <div class="skeleton pipeline-skeleton"></div>
+            <div class="skeleton pipeline-skeleton"></div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="/app.js" defer></script>
+  </body>
+</html>
