@@ -205,19 +205,12 @@ async function submitEntry(event) {
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "保存失败");
 
-    const retainedCompany = payload.company;
-    const retainedDepartment = payload.department;
-    const retainedWebsite = payload.website;
-    const retainedRole = payload.role;
     form.reset();
-    document.querySelector("#company").value = retainedCompany;
-    document.querySelector("#department").value = retainedDepartment;
-    document.querySelector("#website").value = retainedWebsite;
-    document.querySelector("#role").value = retainedRole;
     document.querySelector("#scheduled-at").value = defaultDateTime();
-    showToast("已追加到这条公司主线");
+    document.querySelector(".optional-fields").open = false;
+    showToast("已保存，可继续录入下一条");
     await loadData({ quiet: true });
-    document.querySelector("#stage").focus();
+    document.querySelector("#company").focus();
   } catch (requestError) {
     error.textContent = requestError.message || "保存失败，请重试。";
   } finally {
@@ -245,6 +238,14 @@ async function updateOutcome(button) {
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "更新失败");
+
+    // The outcome is already stored successfully. Remove the card before the
+    // background refresh so the user never has to manually clear a completed
+    // item from the pending area.
+    widgetState.pending = widgetState.pending.filter(
+      (item) => Number(item.id) !== Number(eventId),
+    );
+    renderPending();
     showToast(outcome === "passed" ? "已标记为通过" : "已标记为未通过");
     await loadData({ quiet: true });
   } catch (error) {

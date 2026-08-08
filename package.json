@@ -1,6 +1,6 @@
 {
   "name": "autumn-hire-tracker-windows",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Windows 桌面版秋招投递与面试进度台",
   "main": "src/main.js",
   "private": true,
